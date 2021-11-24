@@ -64,9 +64,57 @@ function upload()
                 echo "<script>
                 alert('yang anda upload bukan gambar');
                 </script>";
+                return false;
         }
 
-        //
+        //cek jika filenya ukurannya terlalu besar
+        if ($ukuranFile)> 1000000 {
+                echo "<script>
+                alert('gambar yang anda upload terlalu besar');
+                </script>";
+                return false;
+        }
+
+        //lolos pengecekan , gambar siap diupload
+        //dan generate nama baru
+        $namaFileBaru = uniqid();
+        $namaFileBaru .= '.';
+        $namaFileBaru .= $ekstensiGambar;
+
+        move_uploaded_file($tmpName, 'img/' . $namaFileBaru);
+        return $namaFileBaru;
+}
+
+function ubah($data){
+        global $conn;
+        //ambil dari data tiap elemen form
+        $id = $data["id"];
+        $nim = htmlspecialchars ($data["nim"]);
+        $nama = htmlspecialchars ($data["nama"]);
+        $email = htmlspecialchars ($data["email"]);
+        $jurusan = htmlspecialchars ($data["jurusan"]);
+
+        //cek apakah user pilih gambar baru atau tidak 
+        $gambarLama = htmlspecialchars ($data["gambarLama"]);
+        if ($_FILES['gambar']['error'] === 4) {
+                $gambar = $gambarLama;
+        }else{
+                $gambar = upload();
+        }
+
+        //query insert data
+        $query = "UPDATE mahasiswa SET
+                        nim = '$nim',
+                        nama = '$nama',
+                        email = '$email',
+                        jurusan = '$jurusan',
+                        gambar = '$gambar'
+
+                        WHERE id = $id
+                        ";
+        mysqli_query($conn, $query);
+
+        return mysqli_affected_rows($conn);
 }
 
 function hapus($id)
